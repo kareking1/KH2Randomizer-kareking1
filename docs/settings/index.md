@@ -403,6 +403,11 @@ Lucky Lucky adds 50 percent of the chance to drop the item.
 
 ### Challenge Modifiers
 
+**Randomize Ability AP Costs** - Changes ability AP costs for Sora to something new. You can specify a new minimum and 
+maximum value for the ability to cost.
+
+> **Warning** - If you allow abilities to have 0 cost, they will be impossible to toggle on or off. Use at your own risk
+
 **Block Skipping CoR** - Disables skipping into the Cavern of Remembrance, instead requiring completion of the fight(s)
 to progress.
 
