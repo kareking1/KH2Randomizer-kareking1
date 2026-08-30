@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.3.2 (2026-08-30)
+
+* Added randomized AP costs for abilities option (Warning: AP cost of zero makes an ability impossible to toggle)
+* Removed pyclip python dependency for copy/paste, should help with Linux compatibility
+* Fix HB/OC being hidden if Cups/CoR/TTR are enabled (mostly daily seeds and rando/rando issue)
+
 ## 3.3.1 (2026-08-20)
 
 * Bugfixes for Co-op Hints - Needs a tracker update to use Points/Shananas hints with co-op.
