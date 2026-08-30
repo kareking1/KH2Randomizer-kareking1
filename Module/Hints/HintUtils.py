@@ -1,4 +1,5 @@
 import copy
+import math
 import random
 from itertools import chain
 from typing import Any, Optional
@@ -16,12 +17,106 @@ from List.location import simulatedtwilighttown as stt
 from Module.RandomizerSettings import RandomizerSettings
 from Module.newRandomize import ItemAssignment
 
+def floyd_warshall(graph):
+    nodes = list(graph.keys())
+
+    dist = {u: {v: math.inf for v in nodes} for u in nodes}
+    for u in nodes:
+        dist[u][u] = 0
+        for v, weight in graph[u].items():
+            dist[u][v] = min(dist[u][v], weight)
+            dist[v][u] = min(dist[v][u], weight)
+
+    for k in nodes:
+        for i in nodes:
+            for j in nodes:
+                through_k = dist[i][k] + dist[k][j]
+                if through_k < dist[i][j]:
+                    dist[i][j] = through_k
+
+    return dist
+
+def get_world_unlock_to_world_map():
+    return {
+        storyunlock.WayToTheDawn : locationType.TWTNW,
+        storyunlock.IceCream : locationType.TT,
+        storyunlock.NaminesSketches : locationType.STT,
+        storyunlock.MembershipCard : locationType.HB,
+        storyunlock.RoyalSummons : locationType.DC,
+        storyunlock.SwordOfTheAncestor : locationType.LoD,
+        storyunlock.BeastsClaw : locationType.BC,
+        storyunlock.SkillAndCrossbones : locationType.PR,
+        storyunlock.BoneFist : locationType.HT,
+        storyunlock.Scimitar : locationType.Agrabah,
+        storyunlock.ProudFang : locationType.PL,
+        storyunlock.BattlefieldsOfWar : locationType.OC,
+        storyunlock.IdentityDisk : locationType.SP,
+        misc.TornPages : locationType.HUNDREDAW,
+    }
+
+def get_gummi_world_graph_paths():
+    graph = {
+        locationType.Free: {},
+        locationType.Critical: {},
+        locationType.Level: {},
+        locationType.FormLevel: {},
+        locationType.Creations: {},
+        locationType.TT: {locationType.TWTNW: 1,locationType.STT: 1,locationType.HB: 1,locationType.DC: 1},
+        locationType.STT: {},
+        locationType.TWTNW: {},
+        locationType.HUNDREDAW: {locationType.HB: 1},
+        locationType.Atlantica: {locationType.DC: 1,locationType.PR: 1},
+        locationType.DC: {locationType.HB: 1, locationType.PR: 1},
+        locationType.HB: {locationType.SP: 1,locationType.BC: 1,locationType.LoD: 1},
+        locationType.LoD: {locationType.OC: 1},
+        locationType.PR: {locationType.HT: 1,locationType.Agrabah: 1},
+        locationType.SP: {},
+        locationType.BC: {locationType.OC: 1},
+        locationType.OC: {},
+        locationType.HT: {locationType.PL: 1},
+        locationType.Agrabah: {locationType.PL: 1},
+        locationType.PL: {},
+    }
+    goa_graph = {
+        locationType.Free: {},
+        locationType.Critical: {},
+        locationType.Level: {},
+        locationType.FormLevel: {},
+        locationType.Creations: {},
+        locationType.Atlantica: {},
+        locationType.SHOP: {},
+
+        locationType.HUNDREDAW: {locationType.SP: 1},
+        locationType.SP: {locationType.PR: 1},
+        locationType.PR: {locationType.TT: 1},
+        locationType.TT: {locationType.OC: 1},
+        locationType.OC: {locationType.HT: 1},
+        locationType.HT: {locationType.LoD: 1},
+        locationType.LoD: {locationType.TWTNW: 1},
+        locationType.TWTNW: {locationType.BC: 1},
+        locationType.BC: {locationType.Agrabah: 1},
+        locationType.Agrabah: {locationType.PL: 1},
+        locationType.PL: {locationType.HB: 1},
+        locationType.HB: {locationType.DC: 1},
+        locationType.DC: {locationType.STT: 1},
+        locationType.STT: {locationType.HUNDREDAW: 1},
+    }
+    distances = floyd_warshall(goa_graph)
+    return distances
+
 
 class CommonTrackerInfo:
     def __init__(self, hint_type, settings: RandomizerSettings):
         self.hintsType = hint_type
         self.generatorVersion = settings.ui_version
         tracker_includes = settings.tracker_includes
+        exclude_list = HintUtils.update_disabled_worlds_on_tracker(settings)
+        # make sure that OC and CoR are properly enabled on the tracker if needed (in cases where CoR/TTR/Cups are on)
+        if locationType.HB not in exclude_list and locationType.HB not in tracker_includes:
+            tracker_includes.append(locationType.HB)
+        if locationType.OC not in exclude_list and locationType.OC not in tracker_includes:
+            tracker_includes.append(locationType.OC)
+
         self.important_check_list = settings.important_checks
         self.enabled_keyblade_unlock_worlds = settings.enabled_keyblade_unlock_worlds
         self.spoiler_reveal_list = settings.spoiler_reveal_checks
@@ -94,11 +189,14 @@ class WorldItems:
         self.world_to_item_list[locationType.Free] = []
         self.world_to_item_list_revealed[locationType.Critical] = []
         self.world_to_item_list_revealed[locationType.Free] = []
+        self.world_unlock_distances = {}
         self.report_information: dict[int, dict[str, Any]] = {}
         self.proof_of_connection_world: Optional[locationType] = None
         self.proof_of_peace_world: Optional[locationType] = None
         self.proof_of_nonexistence_world: Optional[locationType] = None
         self.path_breadcrump_map: dict[locationType, set[locationType]] = {}
+        self.gummi_world_graph = get_gummi_world_graph_paths()
+        world_unlock_to_world_map = get_world_unlock_to_world_map()
 
         self.create_level_check_data_for_tracker(location_item_tuples, tracker_info)
         for world_with_vanilla in HintUtils.world_to_vanilla_items().keys():
@@ -115,6 +213,15 @@ class WorldItems:
                 continue
 
             inventory_item = item.item
+
+            if inventory_item in world_unlock_to_world_map.keys():
+                # time to query for the path distance from the unlock world to where it is
+                world_unlocked = world_unlock_to_world_map[inventory_item]
+                world_unlock_distance_entry = self.world_unlock_distances.setdefault(world_unlocked,[])
+                distance_value = self.gummi_world_graph[world_unlocked][location.LocationTypes[0]]
+                if distance_value is not math.inf:
+                    world_unlock_distance_entry.append(distance_value)
+
             if isinstance(inventory_item, AnsemReport):
                 world_of_location = HintUtils.location_to_tracker_world(location.LocationTypes)
                 self.report_information[inventory_item.report_number]["FoundIn"] = world_of_location
@@ -266,6 +373,7 @@ class PathHintData:
         self,
         world_items: WorldItems,
         world_to_hint: locationType,
+        augment_hints: bool = False,
     ):
         self.num_items = len(world_items.world_to_item_list[world_to_hint])
         self.world = world_to_hint
@@ -286,25 +394,32 @@ class PathHintData:
         )
         if len(self.proof_list) == 0:
             self.proof_list = ["none"]
+        world_distances = world_items.world_unlock_distances.setdefault(world_to_hint,[0])
+        world_distances.sort(reverse=True)
+        distance_text = "".join(map(str,world_distances))
+        if len(distance_text) == 0:
+            distance_text = "0"
+        augmented_text = "" if not augment_hints else f" ({distance_text})"
+        self.distance_value = int(distance_text) if augment_hints else None
 
         if self.num_items == 0:
-            hint_text = f"{world_text} has nothing, sorry."
+            hint_text = f"{world_text} has nothing, sorry{augmented_text}."
         elif not points_to_connection and not points_to_nonexistence and not points_to_peace:
-            hint_text = f"{world_text} has no path to the light."
+            hint_text = f"{world_text} has no path to the light{augmented_text}."
         elif points_to_connection and points_to_nonexistence and points_to_peace:
-            hint_text = f"{world_text} has a path to all lights."
+            hint_text = f"{world_text} has a path to all lights{augmented_text}."
         elif points_to_connection and points_to_peace:
-            hint_text = f"{world_text} is on the path to Connection and Peace."
+            hint_text = f"{world_text} is on the path to Connection and Peace{augmented_text}."
         elif points_to_connection and points_to_nonexistence:
-            hint_text = f"{world_text} is on the path to Connection and Nonexistence."
+            hint_text = f"{world_text} is on the path to Connection and Nonexistence{augmented_text}."
         elif points_to_nonexistence and points_to_peace:
-            hint_text = f"{world_text} is on the path to Nonexistence and Peace."
+            hint_text = f"{world_text} is on the path to Nonexistence and Peace{augmented_text}."
         elif points_to_nonexistence:
-            hint_text = f"{world_text} is on the path to Nonexistence."
+            hint_text = f"{world_text} is on the path to Nonexistence{augmented_text}."
         elif points_to_peace:
-            hint_text = f"{world_text} is on the path to Peace."
+            hint_text = f"{world_text} is on the path to Peace{augmented_text}."
         elif points_to_connection:
-            hint_text = f"{world_text} is on the path to Connection."
+            hint_text = f"{world_text} is on the path to Connection{augmented_text}."
         else:
             raise HintException("Invalid combination of path proof hinting")
         self.hint_text = hint_text
@@ -805,6 +920,7 @@ class HintUtils:
                     "Location": location,
                     "ProofPath": all_data[index].proof_list,
                     "Text": all_data[index].hint_text,
+                    "PathDistances": all_data[index].distance_value,
                 }
             if len(report_numbers) == len(report_assignments):
                 return report_assignments

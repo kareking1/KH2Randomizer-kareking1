@@ -339,6 +339,8 @@ class RandomizerSettings:
         self.antiform: bool = ui_settings.get(settingkey.ANTIFORM)
         self.fifty_ap: bool = ui_settings.get(settingkey.FIFTY_AP_BOOSTS)
         self.hintsType: str = ui_settings.get(settingkey.HINT_SYSTEM)
+        # TODO(zaktherobot): Pipe in a new settings key for this
+        self.augmented_path_hints: bool = False
         self.reportDepth = locationDepth(ui_settings.get(settingkey.REPORT_DEPTH))
         self.proofDepth = locationDepth(ui_settings.get(settingkey.PROOF_DEPTH))
         self.promiseCharmDepth = locationDepth(ui_settings.get(settingkey.PROMISE_CHARM_DEPTH))

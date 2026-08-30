@@ -295,8 +295,9 @@ class Hints:
         if HintType.PATH in generate_hint_type_list:
             hint_names.append(HintType.PATH)
             path_data = []
+            augmented_path = settings.augmented_path_hints
             for world in HintUtils.hintable_worlds():
-                path_data.append(PathHintData(world_items, world))
+                path_data.append(PathHintData(world_items, world, augmented_path))
             hint_datas[hint_data_index]["hintsType"] = HintType.PATH
             hint_datas[hint_data_index]["reveal"] = None
             hint_datas[hint_data_index]["Reports"] = HintUtils.path_hint_assignment(
