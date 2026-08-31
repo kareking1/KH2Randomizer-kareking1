@@ -43,9 +43,9 @@ class TextureRecolorSettingsDialog(QDialog):
         self.conditions_loader = TextureConditionsLoader()
 
         self.base_path = appconfig.extracted_game_path("kh2")
-        if not self.base_path.is_dir():
+        if self.base_path is None:
             # Really shouldn't be able to get here without something weird going on, just note it and return
-            print(f"Could not find extracted data at {self.base_path}")
+            print(f"Could not find extracted KH2 game data")
             return
 
         all_models = TextureRecolorizer.load_recolorable_models()
