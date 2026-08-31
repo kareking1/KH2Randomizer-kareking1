@@ -330,8 +330,8 @@ class TextureRecolorizer:
             return assets
 
         base_path = appconfig.extracted_game_path("kh2")
-        if not base_path.is_dir():
-            print(f"Could not find extracted data at {base_path} - not recoloring textures")
+        if base_path is None:
+            print(f"Could not find extracted KH2 game data - not recoloring textures")
             return assets
 
         recolorable_models = self.load_recolorable_models()
