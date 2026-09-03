@@ -83,6 +83,7 @@ def get_gummi_world_graph_paths():
         locationType.Level: {},
         locationType.FormLevel: {},
         locationType.Creations: {},
+        locationType.SYNTH: {},
         locationType.Atlantica: {},
         locationType.SHOP: {},
 
