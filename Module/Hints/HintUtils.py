@@ -61,6 +61,8 @@ def get_gummi_world_graph_paths():
         locationType.Level: {},
         locationType.FormLevel: {},
         locationType.Creations: {},
+        locationType.SYNTH: {},
+        locationType.SHOP: {},
         locationType.TT: {locationType.TWTNW: 1,locationType.STT: 1,locationType.HB: 1,locationType.DC: 1},
         locationType.STT: {},
         locationType.TWTNW: {},

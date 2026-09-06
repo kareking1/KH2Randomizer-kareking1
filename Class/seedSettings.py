@@ -2669,8 +2669,8 @@ _all_settings = [
     IntSpinner(
         name=settingkey.ABILITY_MAX_AP_VALUE,
         group=SettingGroup.SEED_MODIFIERS,
-        ui_label="Minimum AP Cost",
-        standalone_label="Minimum Ability AP Cost",
+        ui_label="Maximum AP Cost",
+        standalone_label="Maximum Ability AP Cost",
         shared=True,
         minimum=1,
         maximum=8,

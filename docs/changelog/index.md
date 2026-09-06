@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.3.3 (2026-09-06)
+
+* Improved error messaging when missing openkh mod manager locations in custom cosmetics
+* Fixed bug with enabling randomized synthesis rewards
+* Fixed typo on randomized ability cost label
+
 ## 3.3.2 (2026-08-30)
 
 * Added randomized AP costs for abilities option (Warning: AP cost of zero makes an ability impossible to toggle)
