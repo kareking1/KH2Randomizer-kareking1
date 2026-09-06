@@ -4,16 +4,15 @@ from Class.itemClass import KH2Item
 from Class.newLocationClass import KH2Location
 from Class.randomUtils import random_seed_name
 from Class.seedSettings import SeedSettings
-from List.configDict import itemDifficulty, itemRarity, locationCategory
+from List.configDict import itemDifficulty, itemRarity, itemType, locationCategory, locationDepth
 from Module.newRandomize import RandomizerSettings,Randomizer
 from Module.seedEvaluation import LocationInformedSeedValidator
 
-def make_rando_seed(difficulty,seed_name):
+def make_rando_seed(seed_name):
     seed_settings = SeedSettings()
-    seed_settings.set(settingkey.ITEM_PLACEMENT_DIFFICULTY,difficulty)
-    seed_settings.set(settingkey.SORA_LEVELS,"ExcludeFrom99")
-    seed_settings.set(settingkey.SUPERBOSSES_WITH_REWARDS,["AS","Sephi"])#"DataOrg",
-    seed_settings.set(settingkey.STORY_UNLOCK_CATEGORY,itemRarity.RARE)
+    seed_settings.set(settingkey.SUPERBOSSES_WITH_REWARDS,["AS","Sephi","DataOrg"])#,
+    seed_settings.set(settingkey.PROOF_DEPTH,locationDepth.NoFirstVisit.name)
+    seed_settings.set(settingkey.MISC_LOCATIONS_WITH_REWARDS,[])
     settings = RandomizerSettings(seed_name,True,"version",seed_settings, "")
     newSeedValidation = LocationInformedSeedValidator()
     randomizer = None
@@ -28,11 +27,8 @@ def make_rando_seed(difficulty,seed_name):
             last_error = e
             continue
 
-    item_depths = {}
-    item_depths[itemRarity.COMMON] = []
-    item_depths[itemRarity.UNCOMMON] = []
-    item_depths[itemRarity.RARE] = []
-    item_depths[itemRarity.MYTHIC] = []
+    proof_worlds = set()
+
 
     for assignment in randomizer.assignments:
         loc: KH2Location = assignment.location
@@ -43,50 +39,30 @@ def make_rando_seed(difficulty,seed_name):
             continue
 
         if item:
-            item_depths[item.Rarity].append(randomizer.location_weights.location_depths[loc])
+            if item.ItemType in [itemType.PROOF_OF_CONNECTION,itemType.PROOF_OF_PEACE,itemType.PROOF_OF_NONEXISTENCE]:
+                proof_worlds.add(loc.LocationTypes[0])
         if item2:
-            item_depths[item2.Rarity].append(randomizer.location_weights.location_depths[loc])
+            if item2.ItemType in [itemType.PROOF_OF_CONNECTION,itemType.PROOF_OF_PEACE,itemType.PROOF_OF_NONEXISTENCE]:
+                proof_worlds.add(loc.LocationTypes[0])
     
-    return item_depths
+    return proof_worlds
         
         
 if __name__ == '__main__':
-    for difficulty in itemDifficulty:
-        counts = {}
-        counts[itemRarity.COMMON] = {}
-        counts[itemRarity.UNCOMMON] = {}
-        counts[itemRarity.RARE] = {}
-        counts[itemRarity.MYTHIC] = {}
-        max_r = 0
+    counts = {}
 
-        for i in range(21):
-            counts[itemRarity.COMMON][i] = 0
-            counts[itemRarity.UNCOMMON][i] = 0
-            counts[itemRarity.RARE][i] = 0
-            counts[itemRarity.MYTHIC][i] = 0
+    num_attempts = 5000
+    for attempt in range(num_attempts):
+        if attempt%500==0:
+            print(f"\t\t\t\t\t\t\t{attempt}")
+        item_results = make_rando_seed(str(attempt))
+        for proof_world in item_results:
+            counts.setdefault(proof_world,0)
+            counts[proof_world]+=1
 
-        print(difficulty)
-        num_attempts = 100
-        for attempt in range(num_attempts):
-            item_results = make_rando_seed(difficulty,difficulty+str(attempt))
-            for rarity in itemRarity:
-                results = item_results[rarity]
-                rarity_count = counts[rarity]
-                for r in results:
-                    max_r = max(max_r,r)
-                    rarity_count[r]+=1
-
-        line_string = "\t\t"
-        for i in range(max_r+1):
-            line_string+=f"{i}\t"
+    for world in counts.keys():
+        world_count = counts[world]
+        line_string = world.name+"\t"+str(world_count)
         print(line_string)
-        for rarity in itemRarity:
-            rarity_count = counts[rarity]
-            line_string = rarity+"\t"
-            if rarity != itemRarity.UNCOMMON:
-                line_string+="\t"
-            for i in range(max_r+1):
-                line_string+=f"{rarity_count[i]*1.0/num_attempts}\t"
-            print(line_string)
 
         
