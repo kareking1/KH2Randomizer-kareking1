@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.3.4 (2026-09-06)
+
+* Fixed bug with enabling randomized puzzle rewards
+
 ## 3.3.3 (2026-09-06)
 
 * Improved error messaging when missing openkh mod manager locations in custom cosmetics

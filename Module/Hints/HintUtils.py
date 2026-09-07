@@ -63,6 +63,7 @@ def get_gummi_world_graph_paths():
         locationType.Creations: {},
         locationType.SYNTH: {},
         locationType.SHOP: {},
+        locationType.Puzzle: {},
         locationType.TT: {locationType.TWTNW: 1,locationType.STT: 1,locationType.HB: 1,locationType.DC: 1},
         locationType.STT: {},
         locationType.TWTNW: {},
@@ -88,6 +89,7 @@ def get_gummi_world_graph_paths():
         locationType.SYNTH: {},
         locationType.Atlantica: {},
         locationType.SHOP: {},
+        locationType.Puzzle: {},
 
         locationType.HUNDREDAW: {locationType.SP: 1},
         locationType.SP: {locationType.PR: 1},
@@ -221,7 +223,7 @@ class WorldItems:
                 # time to query for the path distance from the unlock world to where it is
                 world_unlocked = world_unlock_to_world_map[inventory_item]
                 world_unlock_distance_entry = self.world_unlock_distances.setdefault(world_unlocked,[])
-                distance_value = self.gummi_world_graph[world_unlocked][location.LocationTypes[0]]
+                distance_value = math.inf#self.gummi_world_graph[world_unlocked][location.LocationTypes[0]]
                 if distance_value is not math.inf:
                     world_unlock_distance_entry.append(distance_value)
 
