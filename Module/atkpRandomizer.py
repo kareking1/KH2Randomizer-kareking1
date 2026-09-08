@@ -750,9 +750,9 @@ class atkpRandomizerClass:
 				attack_entry.Flags = "KillBoss"
 			if len(self.DRIVEGAIN_PRESETS) != 0:
 				if NON_DRIVE_SORA_IDS.__contains__(attack_entry.Id):
-					self.randomize_value(attack_entry.DriveDrain, self.DRIVEGAIN_PRESETS[0], self.DRIVEGAIN_PRESETS[1])
+					attack_entry.DriveDrain = max(min(self.randomize_value(attack_entry.DriveDrain, self.DRIVEGAIN_PRESETS[0], self.DRIVEGAIN_PRESETS[1]), 0), 254)
 				if SORA_MAGIC_IDS.__contains__(attack_entry.Id) and NON_DRIVE_SORA_MAGIC_SUBIDS.__contains__(attack_entry.Id):
-					self.randomize_value(attack_entry.DriveDrain, self.DRIVEGAIN_PRESETS[0], self.DRIVEGAIN_PRESETS[1])
+					attack_entry.DriveDrain = max(min(self.randomize_value(attack_entry.DriveDrain, self.DRIVEGAIN_PRESETS[0], self.DRIVEGAIN_PRESETS[1]), 0), 254)
 			
 			#Fix limit form limits not healing
 			if LIMITFORM_LIMIT_IDS.__contains__(attack_entry.Id):
