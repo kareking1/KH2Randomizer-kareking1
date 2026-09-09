@@ -1187,7 +1187,7 @@ class ATKPObject:
             raise ValueError(f"ComboGroup {self.ComboGroup} outside bounds")
         # byte
         if self.RandomEffect < 0 or self.RandomEffect > 255:
-            print(f"RandomEffect {self.RandomEffect} outside bounds")
+            raise ValueError(f"RandomEffect {self.RandomEffect} outside bounds")
         # string (can be zero)
         if self.Kind not in [0,"ComboFinisher","AirComboFinisher","ReactionCommand"]:
             raise ValueError(f"Kind {self.Kind} outside bounds")
