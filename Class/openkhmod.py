@@ -1043,7 +1043,7 @@ class ATKPObject:
         ComboGroup: int,
         RandomEffect: int,
         Kind,
-        HPDrain: int,
+        HpDrain: int,
     ):
         self.SubId = SubId
         self.Id = Id
@@ -1077,7 +1077,7 @@ class ATKPObject:
         self.ComboGroup = ComboGroup
         self.RandomEffect = RandomEffect
         self.Kind = Kind
-        self.HPDrain = HPDrain
+        self.HpDrain = HpDrain
         self.validate()
 
     def validate(self):
@@ -1170,13 +1170,13 @@ class ATKPObject:
         # byte
         if self.DriveDrain < 0:
             self.DriveDrain = 0
-        if self.DriveDrain > 255:
-            self.DriveDrain = 255
+        if self.DriveDrain > 254:
+            self.DriveDrain = 254
         # byte
         if self.RevengeDamage < 0:
             self.RevengeDamage = 0
-        if self.RevengeDamage > 255:
-            self.RevengeDamage = 255
+        if self.RevengeDamage > 254:
+            self.RevengeDamage = 254
         # string
         if self.AttackTrReaction not in ["Attack","Charge","Crash","Wall"]:
             raise ValueError(f"AttackTrReaction {self.AttackTrReaction} outside bounds")
@@ -1192,10 +1192,10 @@ class ATKPObject:
         if self.Kind not in [0,"ComboFinisher","AirComboFinisher","ReactionCommand"]:
             raise ValueError(f"Kind {self.Kind} outside bounds")
         # byte
-        if self.HPDrain < 0:
-            self.HPDrain = 0
-        if self.HPDrain > 255:
-            self.HPDrain = 255
+        if self.HpDrain < 0:
+            self.HpDrain = 0
+        if self.HpDrain > 254:
+            self.HpDrain = 254
 
 
 class AttackEntriesOrganizer:
@@ -1241,7 +1241,7 @@ class AttackEntriesOrganizer:
                 "ComboGroup": atkp_object.ComboGroup,
                 "RandomEffect": atkp_object.RandomEffect,
                 "Kind": atkp_object.Kind,
-                "HPDrain": atkp_object.HPDrain,
+                "HpDrain": atkp_object.HpDrain,
             }
         )
 
@@ -1285,7 +1285,7 @@ class AttackEntriesOrganizer:
             values["ComboGroup"],
             values["RandomEffect"],
             values["Kind"],
-            values["HPDrain"],
+            values["HpDrain"],
         )
     
     # Obsolete, use the switch method instead to avoid any bugs

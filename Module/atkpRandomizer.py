@@ -728,14 +728,14 @@ class atkpRandomizerClass:
 		self.HPDRAIN_PRESETS = []
 		self.DRIVEGAIN_PRESETS = []
 	
-	def randomize_atkp_data(self, list_data, atkp_organizer: AttackEntriesOrganizer, damage_preset: str, element, revenge_value_preset, multi_hit_preset, knockback_amount_preset, exclude_base_attack, hpdrain_preset, drivegain_preset):
+	def randomize_atkp_data(self, list_data, atkp_organizer: AttackEntriesOrganizer, damage_preset: str, element, revenge_value_preset, multi_hit_preset, knockback_amount_preset, exclude_base_attack, HpDrain_preset, drivegain_preset):
 		attack_entries = []
 		final_attack_entries = []
 		self.DAMAGE_PRESETS = ALL_DAMAGE_PRESETS[damage_preset]
 		self.KNOCKBACK_AMOUNT_PRESETS = ALL_KNOCKBACK_AMOUNT_PRESETS[knockback_amount_preset]
 		self.REVENGE_VALUE_PRESETS = ALL_REVENGE_VALUE_PRESETS[revenge_value_preset]
 		self.MULTI_HIT_PRESETS = ALL_MULTI_HIT_PRESETS[multi_hit_preset]
-		self.HPDRAIN_PRESETS = ALL_HPDRAIN_PRESETS[hpdrain_preset]
+		self.HPDRAIN_PRESETS = ALL_HPDRAIN_PRESETS[HpDrain_preset]
 		self.DRIVEGAIN_PRESETS = ALL_DRIVEGAIN_PRESETS[drivegain_preset]
 
 		for attack_entry in list_data:
@@ -750,13 +750,13 @@ class atkpRandomizerClass:
 				attack_entry.Flags = "KillBoss"
 			if len(self.DRIVEGAIN_PRESETS) != 0:
 				if NON_DRIVE_SORA_IDS.__contains__(attack_entry.Id):
-					attack_entry.DriveDrain = max(min(self.randomize_value(attack_entry.DriveDrain, self.DRIVEGAIN_PRESETS[0], self.DRIVEGAIN_PRESETS[1]), 0), 254)
+					attack_entry.DriveDrain = min(max(int(round(self.randomize_value(attack_entry.DriveDrain, self.DRIVEGAIN_PRESETS[0], self.DRIVEGAIN_PRESETS[1]))), 0), 254)
 				if SORA_MAGIC_IDS.__contains__(attack_entry.Id) and NON_DRIVE_SORA_MAGIC_SUBIDS.__contains__(attack_entry.Id):
-					attack_entry.DriveDrain = max(min(self.randomize_value(attack_entry.DriveDrain, self.DRIVEGAIN_PRESETS[0], self.DRIVEGAIN_PRESETS[1]), 0), 254)
+					attack_entry.DriveDrain = min(max(int(round(self.randomize_value(attack_entry.DriveDrain, self.DRIVEGAIN_PRESETS[0], self.DRIVEGAIN_PRESETS[1]))), 0), 254)
 			
 			#Fix limit form limits not healing
 			if LIMITFORM_LIMIT_IDS.__contains__(attack_entry.Id):
-				attack_entry.HPDrain = random.randint(2, 15)
+				attack_entry.HpDrain = random.randint(2, 15)
 			if len(self.DAMAGE_PRESETS) != 0:
 				attack_entry.Power = max(min(int(round(self.randomize_value(attack_entry.Power, self.DAMAGE_PRESETS[0], self.DAMAGE_PRESETS[1]))), 65535), 0)
 			if element:
@@ -777,9 +777,9 @@ class atkpRandomizerClass:
 			if len(self.REVENGE_VALUE_PRESETS) != 0:
 				attack_entry.RevengeDamage = min(max(attack_entry.RevengeDamage + (self.randomize_revenge_value(self.REVENGE_VALUE_PRESETS[0], self.REVENGE_VALUE_PRESETS[1])), 0), 255)
 			if len(self.MULTI_HIT_PRESETS) != 0:
-				self.randomize_multi_hit(self.MULTI_HIT_PRESETS[0], self.MULTI_HIT_PRESETS[1], self.MULTI_HIT_PRESETS[2], attack_entry)
+				attack_entry.Interval = max(self.randomize_multi_hit(self.MULTI_HIT_PRESETS[0], self.MULTI_HIT_PRESETS[1], self.MULTI_HIT_PRESETS[2]), 0)
 			if len(self.HPDRAIN_PRESETS) != 0:
-				self.randomize_hpdrain(self.HPDRAIN_PRESETS[0], self.HPDRAIN_PRESETS[1], self.HPDRAIN_PRESETS[2], attack_entry)
+				attack_entry.HpDrain = min(max(int(round(attack_entry.HpDrain + self.randomize_hpdrain(self.HPDRAIN_PRESETS[0], self.HPDRAIN_PRESETS[1], self.HPDRAIN_PRESETS[2]))), 0), 254)
 			
 			attack_entry.validate()
 			final_attack_entries.append(attack_entry)
@@ -807,10 +807,10 @@ class atkpRandomizerClass:
 		index = random.randint(0, 2)
 		return KNOCBACK_LIST[index]
 
-	def randomize_multi_hit(self, chance, minFrames, maxFrames, current_attack_entry: ATKPObject):
+	def randomize_multi_hit(self, chance, minFrames, maxFrames):
 		if random.randint(1, 100) > chance:
-			return
-		current_attack_entry.Interval = random.randint(minFrames, maxFrames)
+			return -1
+		return random.randint(minFrames, maxFrames)
 	
 	# Because a lot of moves have either 0 revenge value or a high amount, randomization
 	# is handled by first determining if any change will happen, then by a flat value.
@@ -824,13 +824,13 @@ class atkpRandomizerClass:
 			return -num
 		return num
 
-	def randomize_hpdrain(self, chance, minValue, maxValue, current_attack_entry: ATKPObject):
+	def randomize_hpdrain(self, chance, minValue, maxValue):
 		increase_value = self.positive_or_negative()
 		if random.randint(1, 100) > chance:
-			return 
+			return 0
 		if not increase_value:
-			current_attack_entry.HPDrain = -random.randint(minValue, maxValue)
-		else: current_attack_entry.HPDrain = random.randint(minValue, maxValue)
+			return -random.randint(minValue, maxValue)
+		else: return random.randint(minValue, maxValue)
 
 	def positive_or_negative(self):
 		if random.randint(1, 100) > 50: return True
